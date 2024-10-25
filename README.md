@@ -1,7 +1,5 @@
 **SOEN 342 Project - Fall 2024**
 
-Github and File UML use case.drawio.pdf  
-Due: Friday, October 4, 2024
+Jonathan Della Penta - 40128210 - jonathandellapenta@gmail.com - Section II
 
-Folder Iteration2  
-Due: Friday, October 18, 2024
+Jutipong Puntulrng - 40080233 - j_puntul@hotmail.com - Section II
