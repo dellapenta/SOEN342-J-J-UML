@@ -8,7 +8,7 @@ public class Public {
     public void viewPublicOfferings(List<Offering> offerings) {
         System.out.println("Available Public Offerings:");
         for (Offering offering : offerings) {
-            if (offering.getInstructor() != null) {
+            if (offering.isAvailable() == true) {
                 System.out.println("Offering: " + offering.getName() +
                                    ", Location: " + offering.getLocation().getName() +
                                    ", Instructor: " + offering.getInstructor().getName() +
