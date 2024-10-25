@@ -1,5 +1,7 @@
 package OfferingManagement;
 
+import java.util.List;
+
 import UserManagement.*;
 
 public class Offering {
@@ -10,7 +12,7 @@ public class Offering {
     private String offeringType;
     private Location location;
     private Schedule schedule;
-    private boolean isAvailable;
+    private boolean availability;
     private Instructor instructor;
 
     public Offering(String name, String offeringType, Location location, Schedule schedule) {
@@ -19,7 +21,7 @@ public class Offering {
         this.offeringType = offeringType;
         this.location = location;
         this.schedule = schedule;
-        this.isAvailable = true;
+        this.availability = true;
         this.instructor = null;
     }
 
@@ -47,8 +49,8 @@ public class Offering {
         return schedule;
     }
 
-    public boolean isAvailable() {
-        return isAvailable;
+    public boolean getAvailability() {
+        return availability;
     }
 
     public Instructor getInstructor() {
@@ -56,12 +58,11 @@ public class Offering {
     }
 
     public void assignInstructor(Instructor instructor) {
-        if (isAvailable) {
-            this.instructor = instructor;
-            this.isAvailable = false;
-            System.out.println("Instructor " + instructor.getName() + " assigned to offering '" + name + "'.");
-        } else {
-            System.out.println("Offering is not available for assignment.");
-        }
+        this.instructor = instructor;
     }
+
+    public boolean isAvailable() {
+        return this.instructor != null;
+    }
+
 }
