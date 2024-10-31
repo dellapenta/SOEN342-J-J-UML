@@ -1,7 +1,5 @@
 package OfferingManagement;
 
-import java.util.List;
-
 import UserManagement.*;
 
 public class Offering {
@@ -62,7 +60,10 @@ public class Offering {
     }
 
     public boolean isAvailable() {
-        return this.instructor != null;
+        return this.instructor != null && this.availability;
     }
 
+    public void setAvailability(boolean availability) {
+        this.availability = availability;
+    }
 }
