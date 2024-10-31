@@ -33,6 +33,7 @@ public class Main {
             System.out.println("3. Client");
             System.out.println("4. Public");
             System.out.println("5. Register as a New Instructor");
+            System.out.println("6. Register as a New Client");
             System.out.println("0. Exit");
             System.out.print("Select your role: ");
             roleChoice = scanner.nextInt();
@@ -415,6 +416,58 @@ public class Main {
         instructors.add(newInstructor);
     
         System.out.println("Registration successful! Welcome, " + newInstructor.getName() + ".");
+    }
+
+    private static void registerClient() {
+        Scanner scanner = new Scanner(System.in);
+        Client newClient;
+
+        System.out.println("\n***Client Registration ***");
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter your contact number: ");
+        String contactNumber = scanner.nextLine();
+        System.out.print("Enter your email: ");
+        String email = scanner.nextLine();
+        System.out.print("Enter your age: ");
+        int age = scanner.nextInt();
+        if (age < 18) {
+            System.out.println("Your age is below 18, guardian information is required.");
+            scanner.nextLine();  // Consume the newline
+            System.out.print("Enter your guardian name: ");
+            String guardianName = scanner.nextLine();
+            System.out.print("Enter your guardian contact number: ");
+            String guardianContactNumber = scanner.nextLine();
+            System.out.print("Enter your guardian email: ");
+            String guardianEmail = scanner.nextLine();
+            System.out.println("Enter your guardian age: ");
+            int guardianAge = scanner.nextInt();
+            scanner.nextLine();  // Consume the newline
+            Client guardian = null;
+            for (Client client : clients) {
+                if (client.getEmail().equalsIgnoreCase(guardianEmail)) {
+                    guardian = client;
+                    break;
+                }
+            }
+
+            // If guardian not found, create a new guardian client and add to the list
+            if (guardian == null) {
+                guardian = new Client(guardianName, guardianContactNumber, guardianEmail, guardianAge);
+                clients.add(guardian);
+            }
+
+            // Register the new client with the found or created guardian
+            newClient = new Client(name, contactNumber, email, age, guardian);
+        } else {
+            // Register a new client who is 18 or older
+            newClient = new Client(name, contactNumber, email, age);
+        }
+
+        clients.add(newClient);
+        System.out.println("Registration successful! Welcome, " + newClient.getName() + ".");
+        return;
+        
     }
 
     // Prepopulate with sample data for testing
