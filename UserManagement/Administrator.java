@@ -51,4 +51,10 @@ public class Administrator extends User {
             System.out.println("User not found.");
         }
     }
+
+    public void viewBooking(List<Booking> bookings) {
+        for (Booking booking : bookings) {
+            System.out.println(booking.getId() + ". " + booking.getOffering().getName() + " - " + (booking.getUser().getName()));
+        }
+    }
 }

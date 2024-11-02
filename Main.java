@@ -1,5 +1,5 @@
-import UserManagement.*;
 import OfferingManagement.*;
+import UserManagement.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -11,6 +11,7 @@ public class Main {
     private static List<Offering> offerings = new ArrayList<>();
     private static List<Instructor> instructors = new ArrayList<>();
     private static List<Client> clients = new ArrayList<>();
+    private static List<Booking> bookings = new ArrayList<>();
     private static Administrator admin;
 
     public static void main(String[] args) {
@@ -55,6 +56,9 @@ public class Main {
                 case 5:
                     registerInstructor();
                     break;
+                case 6:
+                    registerClient();
+                    break;
                 case 0:
                     System.out.println("Exiting the system...");
                     break;
@@ -76,6 +80,9 @@ public class Main {
             System.out.println("2. Update Offering");
             System.out.println("3. Remove Offering");
             System.out.println("4. View Offerings");
+            System.out.println("5. View Clients");
+            System.out.println("6. View Instructors");
+            System.out.println("7. View Bookings");
             System.out.println("0. Back to Role Selection");
             System.out.print("Select an option: ");
             choice = scanner.nextInt();
@@ -184,6 +191,42 @@ public class Main {
                         System.out.println("\nAvailable Offerings:");
                         for (Offering offering : offerings) {
                             System.out.println("- " + offering.getOfferingId() + ". " + offering.getName() + " (" + offering.getOfferingType() + " )");
+                        }
+                    }
+                    break;
+
+                case 5:
+                    // View Clients
+                    if (clients.isEmpty()) {
+                        System.out.println("No clients available.");
+                    } else {
+                        System.out.println("\nAvailable Clients:");
+                        for (Client client : clients) {
+                            System.out.println("- " + client.getName());
+                        }
+                    }
+                    break;
+
+                case 6:
+                    // View Instructors
+                    if (instructors.isEmpty()) {
+                        System.out.println("No instructors available.");
+                    } else {
+                        System.out.println("\nAvailable Instructors:");
+                        for (Instructor instructor : instructors) {
+                            System.out.println("- " + instructor.getName());
+                        }
+                    }
+                    break;
+
+                case 7:
+                    // View Bookings
+                    if (bookings.isEmpty()) {
+                        System.out.println("No bookings available.");
+                    } else {
+                        System.out.println("\nAvailable Bookings:");
+                        for (Booking booking : bookings) {
+                            System.out.println("- " + booking.getOffering().getName() + " - " + booking.getUser().getName());
                         }
                     }
                     break;
@@ -333,7 +376,9 @@ public class Main {
                             }
 
                             if (selectedOffering != null && selectedOffering.isAvailable()) {
-                                selectedClient.bookOffering(selectedOffering);
+                                Booking booking =selectedClient.bookOffering(selectedOffering);
+                                bookings.add(booking);
+                                System.out.println("Booking " + booking.getId() + " for " + selectedOffering.getName() + " has been made by " + selectedClient.getName() + ".");
                             } else {
                                 System.out.println("Offering selection failed.");
                             }
@@ -344,25 +389,39 @@ public class Main {
 
                 case 2:
                     // View my bookings
-                    selectedClient.viewBookings();
+                    selectedClient.viewBookings(bookings);
                     break;
 
-                case 3:
+                    case 3:
                     // Cancel booking
-                    if (selectedClient.getBookings().isEmpty()) {
-                        System.out.println("No bookings.");
+                    List<Booking> myBookings = new ArrayList<>();
+                    for (Booking booking : bookings) {
+                        if (booking.getUser().getUserId() == selectedClient.getUserId()) {
+                            myBookings.add(booking);
+                        }
+                    }
+
+                    if (myBookings.isEmpty()) {
+                        System.out.println("No bookings found for user " + selectedClient.getName() + ".");
                     } else {
-                        selectedClient.viewBookings();
-                        System.out.print("Enter the number of the booking to cancel: ");
+                        // View user's bookings
+                        selectedClient.viewBookings(myBookings);
+
+                        System.out.print("Enter the number of the booking to cancel (1 to " + myBookings.size() + "): ");
                         int bookingIndex = scanner.nextInt();
                         scanner.nextLine();  // Consume the newline
 
-                        // Validate the input to ensure a valid offering index is selected
-                        if (bookingIndex < 1 || bookingIndex > selectedClient.getBookings().size()) {
+                        // Validate the input to ensure a valid booking index is selected
+                        if (bookingIndex < 1 || bookingIndex > myBookings.size()) {
                             System.out.println("Invalid booking selection.");
                         } else {
-                            selectedClient.cancelBooking(selectedClient.getBookings().get(bookingIndex - 1));
+                            // Cancel the booking using the selected index
+                            Booking bookingToCancel = myBookings.get(bookingIndex - 1);
+                            selectedClient.cancelBooking( bookings, bookingToCancel);
+                            System.out.println("Booking canceled: " + bookingToCancel.getOffering().getName());
+
                         }
+
                     }
                     break;
 
@@ -584,17 +643,9 @@ public class Main {
 
         // Sample Clients
         Client client1 = new Client("Alice Smith", "123-456-7890", "alice@example.com", 28);
-        client1.getBookings().add(offering1);
-
         Client client2 = new Client("Bob Johnson", "987-654-3210", "bob@example.com", 35);
-        client2.getBookings().add(offering2);
-
         Client client3 = new Client("Catherine Lee", "456-789-1230", "catherine@example.com", 32);
-        client3.getBookings().add(offering3);
-
         Client client4 = new Client("David Brown", "789-123-4567", "david@example.com", 42);
-
-
         Client client5 = new Client("Emma Davis", "321-654-9870", "emma@example.com", 26);
 
         // Add clients to list

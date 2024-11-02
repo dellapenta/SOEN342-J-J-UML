@@ -1,4 +1,5 @@
 package UserManagement;
+
 public class User {
     private static int idCounter = 0; // Static variable to keep track of the last assigned ID
     private int userId;

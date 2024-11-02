@@ -1,7 +1,6 @@
 package OfferingManagement;
 
 import UserManagement.*;
-
 public class Offering {
     private static int idCounter = 0;  // Static variable to track ID count
 
