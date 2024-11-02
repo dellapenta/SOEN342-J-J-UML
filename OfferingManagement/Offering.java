@@ -1,9 +1,6 @@
 package OfferingManagement;
 
-import java.util.List;
-
 import UserManagement.*;
-
 public class Offering {
     private static int idCounter = 0;  // Static variable to track ID count
 
@@ -62,7 +59,10 @@ public class Offering {
     }
 
     public boolean isAvailable() {
-        return this.instructor != null;
+        return this.instructor != null && this.availability;
     }
 
+    public void setAvailability(boolean availability) {
+        this.availability = availability;
+    }
 }
