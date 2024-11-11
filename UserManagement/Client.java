@@ -8,22 +8,24 @@ public class Client extends User {
   private int age;
   private Client guardian;
 
-  // Constructor for clients over 18
-  public Client(String name, String phoneNumber, String email, int age) {
-    super(name);
-    this.phoneNumber = phoneNumber;
-    this.email = email;
-    this.age = age;;
-  }
-
-  // Constructor for clients under 18 with a guardian
   public Client(String name, String phoneNumber, String email, int age, Client guardian) {
     super(name);
     this.phoneNumber = phoneNumber;
     this.email = email;
     this.age = age;
-    this.guardian = guardian;;
-}
+    if (age < 18) {
+      if (guardian == null) {
+        throw new IllegalArgumentException("Guardian is required for clients under 18.");
+      }
+      if (guardian.getAge() < 18) {
+        throw new IllegalArgumentException("Guardian must be at least 18 years old.");
+      }
+      this.guardian = guardian;
+    } else {
+      this.guardian = null;
+    }
+  }
+
   public String getPhoneNumber() {
     return phoneNumber;
   }
@@ -44,8 +46,21 @@ public class Client extends User {
     return "User ID: " + getUserId() + ", Name: " + getName() + ", Phone Number: " + phoneNumber + ", Email: " + email + ", Age: " + age;
   }
 
-  public Booking bookOffering(Offering offering) {
+  public Booking bookOffering(Offering offering, List<Booking> bookings) {
     if(offering.isAvailable()) {
+      for (Booking booking : bookings) {
+        Schedule schedule = booking.getOffering().getSchedule();
+        if (schedule.getStartDate().isBefore(offering.getSchedule().getEndDate())
+          && schedule.getEndDate().isAfter(offering.getSchedule().getStartDate())
+          && schedule.getDayOfWeek().equals(offering.getSchedule().getDayOfWeek())
+          ) {
+            if (schedule.getTimeSlot().equals(offering.getSchedule().getTimeSlot())) {
+              System.out.println("You already have a booking for this time slot.");
+              return null; // Prevent booking the same time slot
+          }
+        }
+      }
+      // If no conflicting booking, proceed with the new booking
       offering.setAvailability(false);
       return new Booking(this, offering);
     } else {
@@ -66,7 +81,6 @@ public class Client extends User {
 
         if (!found) {
             System.out.println("No bookings found for user " + getName() + ".");
-            return;
         }
   }
 

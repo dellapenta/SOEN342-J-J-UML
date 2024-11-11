@@ -1,5 +1,7 @@
 package OfferingManagement;
 
+import java.util.List;
+
 import UserManagement.*;
 public class Offering {
     private static int idCounter = 0;  // Static variable to track ID count
@@ -65,4 +67,21 @@ public class Offering {
     public void setAvailability(boolean availability) {
         this.availability = availability;
     }
+
+    public static Offering createOffering(String name, String type, Location location, Schedule schedule, List<Offering> offerings) {
+        for (Offering offering : offerings) {
+            Schedule offerSchedule = offering.getSchedule();
+            if (offerSchedule.getStartDate().isBefore(schedule.getEndDate())
+              && offerSchedule.getEndDate().isAfter(schedule.getStartDate())
+              && offerSchedule.getDayOfWeek().equals(schedule.getDayOfWeek())
+              && offerSchedule.getTimeSlot().equals(schedule.getTimeSlot())
+              && offering.getLocation().getAddress().equals(location.getAddress())
+              ) {
+                  return null;
+            }
+        }
+
+        return new Offering(name, type, location, schedule);
+    }
+
 }

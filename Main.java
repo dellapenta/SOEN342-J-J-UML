@@ -2,7 +2,6 @@ import OfferingManagement.*;
 import UserManagement.*;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -70,6 +69,8 @@ public class Main {
         scanner.close();
     }
 
+
+    // Administrator menu
     private static void adminMenu() {
         Scanner scanner = new Scanner(System.in);
         int choice;
@@ -109,13 +110,14 @@ public class Main {
                     System.out.print("Enter end date (yyyy-mm-dd): ");
                     LocalDate endDate = LocalDate.parse(scanner.nextLine());
                     System.out.print("Enter start time (HH:mm): ");
-                    LocalTime startTime = LocalTime.parse(scanner.nextLine());
+                    String startTime = scanner.nextLine();
                     System.out.print("Enter end time (HH:mm): ");
-                    LocalTime endTime = LocalTime.parse(scanner.nextLine());
+                    String endTime = scanner.nextLine();
                     System.out.print("Enter day of the week: ");
                     String dayOfWeek = scanner.nextLine();
 
-                    Schedule schedule = new Schedule(startDate, endDate, startTime, endTime, dayOfWeek);
+                    String timeSlot = startTime + " - " + endTime;
+                    Schedule schedule = new Schedule(startDate, endDate, timeSlot, dayOfWeek);
 
                     // Delegate to Administrator to create offering
                     admin.createOffering(offerings, name, type, location, schedule);
@@ -241,6 +243,8 @@ public class Main {
         } while (choice != 0);
     }
 
+
+    // Instructor menu
     private static void instructorMenu() {
         Scanner scanner = new Scanner(System.in);
 
@@ -287,25 +291,20 @@ public class Main {
                         int offeringIndex = scanner.nextInt();
                         scanner.nextLine();  // Consume the newline
 
-                        // Validate the input to ensure a valid offering index is selected
-                        if (offeringIndex < 1 || offeringIndex > offerings.size()) {
-                            System.out.println("Invalid offering selection.");
+                        Offering offeringToSelect = null;
+
+                        // Find the selected offering
+                        for (Offering offering : offerings) {
+                            if (offering.getOfferingId() == offeringIndex) {
+                                offeringToSelect = offering;
+                                break;
+                            }
+                        }
+
+                        if (offeringToSelect != null) {
+                            selectedInstructor.selectOffering(offeringToSelect);
                         } else {
-                            Offering offeringToSelect = null;
-    
-                            // Find the selected offering
-                            for (Offering offering : offerings) {
-                                if (offering.getOfferingId() == offeringIndex) {
-                                    offeringToSelect = offering;
-                                    break;
-                                }
-                            }
-    
-                            if (offeringToSelect != null) {
-                                selectedInstructor.selectOffering(offeringToSelect);
-                            } else {
-                                System.out.println("Offering selection failed.");
-                            }
+                            System.out.println("Offering selection failed.");
                         }
                     }
                     break;
@@ -320,6 +319,8 @@ public class Main {
         } while (choice != 0);
     }
 
+
+    // Client menu
     private static void clientMenu() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("\n*** Select Client Identity ***");
@@ -363,27 +364,23 @@ public class Main {
                         scanner.nextLine();  // Consume the newline
 
                         // Validate the input to ensure a valid offering index is selected
-                        if (offeringIndex < 1 || offeringIndex > offerings.size()) {
-                            System.out.println("Invalid offering selection.");
-                        } else {
-                            Offering selectedOffering = null;
-                            // Find the selected offering
-                            for (Offering offering : offerings) {
-                                if (offering.getOfferingId() == offeringIndex) {
-                                    selectedOffering = offering;
-                                    break;
-                                }
+                        Offering selectedOffering = null;
+                        // Find the selected offering
+                        for (Offering offering : offerings) {
+                            if (offering.getOfferingId() == offeringIndex) {
+                                selectedOffering = offering;
+                                break;
                             }
-
-                            if (selectedOffering != null && selectedOffering.isAvailable()) {
-                                Booking booking =selectedClient.bookOffering(selectedOffering);
-                                bookings.add(booking);
-                                System.out.println("Booking " + booking.getId() + " for " + selectedOffering.getName() + " has been made by " + selectedClient.getName() + ".");
-                            } else {
-                                System.out.println("Offering selection failed.");
-                            }
-                            
                         }
+
+                        if (selectedOffering != null && selectedOffering.isAvailable()) {
+                            Booking booking =selectedClient.bookOffering(selectedOffering, bookings);
+                            bookings.add(booking);
+                            System.out.println("Booking " + booking.getId() + " for " + selectedOffering.getName() + " has been made by " + selectedClient.getName() + ".");
+                        } else {
+                            System.out.println("Offering selection failed.");
+                        }
+
                     }
                     break;
 
@@ -411,15 +408,23 @@ public class Main {
                         int bookingIndex = scanner.nextInt();
                         scanner.nextLine();  // Consume the newline
 
-                        // Validate the input to ensure a valid booking index is selected
-                        if (bookingIndex < 1 || bookingIndex > myBookings.size()) {
-                            System.out.println("Invalid booking selection.");
-                        } else {
-                            // Cancel the booking using the selected index
-                            Booking bookingToCancel = myBookings.get(bookingIndex - 1);
-                            selectedClient.cancelBooking( bookings, bookingToCancel);
-                            System.out.println("Booking canceled: " + bookingToCancel.getOffering().getName());
+                        // Validate the input to ensure a valid booking ID is selected
+                        Booking bookingToCancel = null;
 
+                        // Check if the selected booking index corresponds to a valid booking ID
+                        for (Booking booking : myBookings) {
+                            if (booking.getId() == bookingIndex) {
+                                bookingToCancel = booking;
+                                break;
+                            }
+                        }
+
+                        // Check if a valid booking was found
+                        if (bookingToCancel != null) {
+                            selectedClient.cancelBooking(bookings, bookingToCancel);
+                            System.out.println("Booking canceled: " + bookingToCancel.getOffering().getName());
+                        } else {
+                            System.out.println("Invalid booking selection.");
                         }
 
                     }
@@ -435,6 +440,8 @@ public class Main {
         } while (choice != 0);
     }
 
+
+    // Public menu
     private static void publicMenu() {
         boolean hasInstructorAssigned = false;
 
@@ -446,7 +453,8 @@ public class Main {
                     + " (" + offering.getOfferingType() + ")" 
                     + " (" + offering.getLocation().getName() + ")" 
                     + " (" + offering.getSchedule().getStartDate() + " to " 
-                    + offering.getSchedule().getEndDate() + ")" 
+                    + offering.getSchedule().getEndDate()
+                    + " at " + offering.getSchedule().getTimeSlot() + ")"
                     + " Instructor: " + offering.getInstructor().getName());
             }
         }
@@ -457,6 +465,8 @@ public class Main {
         }
     }
 
+
+    // Instructor registration
     private static void registerInstructor() {
         Scanner scanner = new Scanner(System.in);
     
@@ -477,6 +487,8 @@ public class Main {
         System.out.println("Registration successful! Welcome, " + newInstructor.getName() + ".");
     }
 
+
+    // Client registration
     private static void registerClient() {
         Scanner scanner = new Scanner(System.in);
         Client newClient;
@@ -512,7 +524,7 @@ public class Main {
 
             // If guardian not found, create a new guardian client and add to the list
             if (guardian == null) {
-                guardian = new Client(guardianName, guardianContactNumber, guardianEmail, guardianAge);
+                guardian = new Client(guardianName, guardianContactNumber, guardianEmail, guardianAge, null);
                 clients.add(guardian);
             }
 
@@ -520,7 +532,7 @@ public class Main {
             newClient = new Client(name, contactNumber, email, age, guardian);
         } else {
             // Register a new client who is 18 or older
-            newClient = new Client(name, contactNumber, email, age);
+            newClient = new Client(name, contactNumber, email, age, null);
         }
 
         clients.add(newClient);
@@ -542,40 +554,35 @@ public class Main {
         Schedule schedule1 = new Schedule(
                 LocalDate.of(2024, 9, 1),
                 LocalDate.of(2024, 11, 30),
-                LocalTime.of(12, 0),
-                LocalTime.of(15, 0),
+                "12:00 - 1:00",
                 "Sunday"
         );
     
         Schedule schedule2 = new Schedule(
                 LocalDate.of(2024, 10, 1),
                 LocalDate.of(2024, 12, 15),
-                LocalTime.of(10, 0),
-                LocalTime.of(12, 0),
+                "10:00 - 12:00",
                 "Saturday"
         );
     
         Schedule schedule3 = new Schedule(
                 LocalDate.of(2024, 11, 5),
                 LocalDate.of(2025, 1, 20),
-                LocalTime.of(18, 0),
-                LocalTime.of(20, 0),
+                "18:00 - 20:00",
                 "Wednesday"
         );
     
         Schedule schedule4 = new Schedule(
                 LocalDate.of(2024, 8, 20),
                 LocalDate.of(2024, 10, 20),
-                LocalTime.of(9, 0),
-                LocalTime.of(11, 0),
+                "09:00 - 11:00",
                 "Monday"
         );
     
         Schedule schedule5 = new Schedule(
                 LocalDate.of(2024, 7, 15),
                 LocalDate.of(2024, 9, 15),
-                LocalTime.of(13, 0),
-                LocalTime.of(14, 30),
+                "13:00 - 14:30",
                 "Friday"
         );
     
@@ -642,11 +649,11 @@ public class Main {
         offering9.assignInstructor(instructor8);
 
         // Sample Clients
-        Client client1 = new Client("Alice Smith", "123-456-7890", "alice@example.com", 28);
-        Client client2 = new Client("Bob Johnson", "987-654-3210", "bob@example.com", 35);
-        Client client3 = new Client("Catherine Lee", "456-789-1230", "catherine@example.com", 32);
-        Client client4 = new Client("David Brown", "789-123-4567", "david@example.com", 42);
-        Client client5 = new Client("Emma Davis", "321-654-9870", "emma@example.com", 26);
+        Client client1 = new Client("Alice Smith", "123-456-7890", "alice@example.com", 28, null);
+        Client client2 = new Client("Bob Johnson", "987-654-3210", "bob@example.com", 35, null);
+        Client client3 = new Client("Catherine Lee", "456-789-1230", "catherine@example.com", 32, null);
+        Client client4 = new Client("David Brown", "789-123-4567", "david@example.com", 42, null);
+        Client client5 = new Client("Emma Davis", "321-654-9870", "emma@example.com", 26, null);
 
         // Add clients to list
         clients.add(client1);

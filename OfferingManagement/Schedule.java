@@ -1,20 +1,17 @@
 package OfferingManagement;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class Schedule {
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private String timeSlot;
     private String dayOfWeek;
     private LocalDate startDate;
     private LocalDate endDate;
 
-    public Schedule(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime, String dayOfWeek) {
+    public Schedule(LocalDate startDate, LocalDate endDate, String timeSlot, String dayOfWeek) {
         this.startDate = startDate;
         this.endDate = endDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
+        this.timeSlot = timeSlot;
         this.dayOfWeek = dayOfWeek;
     }
 
@@ -26,12 +23,8 @@ public class Schedule {
         return endDate;
     }
 
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
+    public String getTimeSlot() {
+        return timeSlot;
     }
 
     public String getDayOfWeek() {

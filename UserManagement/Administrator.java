@@ -22,7 +22,11 @@ public class Administrator extends User {
     }
 
     public void createOffering(List<Offering> offerings, String name, String offeringType, Location location, Schedule schedule) {
-        Offering offer = new Offering(name, offeringType, location, schedule);
+        Offering offer = Offering.createOffering(name, offeringType, location, schedule, offerings);
+        if (offer == null) {
+            System.out.println("Offering is not unique.");
+            return;
+        }
         offerings.add(offer); // Add the new offering to the passed list
         System.out.println("Offering '" + offer.getName() + "' created by " + getName() + ".");
     }
