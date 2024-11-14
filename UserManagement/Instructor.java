@@ -67,8 +67,8 @@ public class Instructor extends User {
     System.out.println("Offerings for user " + getName() + ":");
     boolean found = false;
         for ( Offering offering : offerings) {
-            if (offering.getInstructor().getUserId() == this.getUserId()) {
-                System.out.println(offering.getOfferingId() + ". " + offering.getLesson().getName() );
+            if ( offering.getInstructor() != null && offering.getInstructor().getUserId() == this.getUserId()) {
+                System.out.println(offering.getLesson().getLessonId() + ". " + offering.getLesson().getName() );
                 assignedOfferings.add(offering);
                 found = true;
             }

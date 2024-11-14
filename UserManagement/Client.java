@@ -93,7 +93,6 @@ public class Client extends User {
   public void cancelBooking(List<Booking> bookings, Booking booking) {
     if (bookings.remove(booking)) {
        booking.getOffering().getLesson().setCapacity(1);
-       System.out.println("Booking " + booking.getId() + " for " + booking.getOffering().getLesson().getName() + " has been cancelled by " + getName() + ".");
     } else {
        System.out.println("Booking not found.");
     }

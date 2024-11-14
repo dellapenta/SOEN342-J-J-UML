@@ -12,7 +12,7 @@ public class Public {
                 Lesson lesson = offering.getLesson();
                 System.out.println(lesson.getName() + " class is available" +
                                    " at " + lesson.getLocation().getName() +
-                                   " in " + lesson.getLocation().getAddress() +
+                                   " in " + lesson.getLocation().getCity() +
                                    " on " + lesson.getSchedule().getDayOfWeek() +
                                    " from " + lesson.getSchedule().getTimeSlot() +
                                    ", from " + lesson.getSchedule().getStartDate() +

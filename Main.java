@@ -21,9 +21,93 @@ public class Main {
 
         // Start the main application loop with role selection
         roleSelectionMenu();
+
+        
+    }
+
+    // Define a method to handle the booking process
+    private static void processBooking(Client selectedClient, Client guardian, List<Offering> offerings, List<Booking> bookings) {
+        Scanner scanner = new Scanner(System.in);
+        if (offerings.isEmpty()) {
+            System.out.println("No offerings.");
+            return;
+        }
+
+        publicMenu(); // Display available offerings
+        System.out.print("Enter the number of the offering to book: ");
+        int offeringIndex = scanner.nextInt();
+        scanner.nextLine();  // Consume the newline
+
+        // Validate the input to ensure a valid offering index is selected
+        Offering selectedOffering = null;
+        // Find the selected offering by ID
+        for (Offering offering : offerings) {
+            if (offering.getOfferingId() == offeringIndex) {
+                selectedOffering = offering;
+                break;
+            }
+        }
+
+        if (selectedOffering != null && selectedOffering.isAvailable()) {
+            Booking booking = selectedClient.bookOffering(selectedOffering, bookings);
+            bookings.add(booking);
+            if (guardian != null) {
+                System.out.println( "Booking " + booking.getId() + " for " + selectedOffering.getLesson().getName() 
+                            + " has been made by " + guardian.getName() + " for " + selectedClient.getName() + ".");
+            } else {
+                System.out.println("Booking " + booking.getId() + " for " + selectedOffering.getLesson().getName() 
+                            + " has been made by " + selectedClient.getName() + ".");
+            }
+
+        } else {
+            System.out.println("Offering selection failed or the offering is not available.");
+        }
+    }
+
+    // Define a method to handle the cancellation process
+    private static void processCancellation(Client selectedClient, Client guardian, List<Booking> bookings) {
+        Scanner scanner = new Scanner(System.in);
+        // Cancel booking
+        if (bookings.isEmpty()) {
+            System.out.println("No bookings.");
+            return;
+        }
+        
+        List<Booking> myBookings = selectedClient.viewBookings(bookings);
+
+        if (myBookings.isEmpty()) {
+            return;
+        }
+
+        System.out.print("Enter the number of the booking to cancel (1 to " + myBookings.size() + "): ");
+        int bookingIndex = scanner.nextInt();
+        scanner.nextLine();  // Consume the newline
+
+        // Validate the input to ensure a valid booking ID is selected
+        Booking bookingToCancel = null;
+
+        // Check if the selected booking index corresponds to a valid booking ID
+        for (Booking booking : myBookings) {
+            if (booking.getId() == bookingIndex) {
+                bookingToCancel = booking;
+                selectedClient.cancelBooking(bookings, bookingToCancel);
+                if (guardian != null) {
+                    System.out.println("Booking " + bookingToCancel.getId() + " for " + bookingToCancel.getOffering().getLesson().getName() 
+                                + " has been cancelled by " + guardian.getName() + " for " + selectedClient.getName() + ".");
+                } else {
+                    System.out.println("Booking " + bookingToCancel.getId() + " for " + bookingToCancel.getOffering().getLesson().getName() 
+                                + " has been cancelled by " + selectedClient.getName() + ".");
+                }
+                return;
+            }
+        }
+
+        System.out.println("Invalid booking selection.");
+
     }
 
     private static void roleSelectionMenu() {
+        
         Scanner scanner = new Scanner(System.in);
         int roleChoice;
 
@@ -99,13 +183,13 @@ public class Main {
                     String name = scanner.nextLine();
                     System.out.print("Enter offering Type: ");
                     String type = scanner.nextLine();
-                    System.out.println("Enter the capacity:");
+                    System.out.print("Enter the capacity: ");
                     int capacity = scanner.nextInt();
+                    scanner.nextLine();
                     System.out.print("Enter location name: ");
-                    String locationName = scanner.nextLine();
+                    String locationName= scanner.nextLine();
                     System.out.print("Enter city: ");
                     String city = scanner.nextLine();
-                    scanner.nextLine();  // Consume newline
                     Location location = new Location(locationName, city);
 
                     System.out.print("Enter start date (yyyy-mm-dd): ");
@@ -268,7 +352,7 @@ public class Main {
         // Prompt for instructor identity selection
         System.out.println("\n*** Select Instructor Identity ***");
         for (int i = 0; i < instructors.size(); i++) {
-            System.out.println((i) + ". " + instructors.get(i).getName());
+            System.out.println((i+1) + ". " + instructors.get(i).getName());
         }
         System.out.print("Select an instructor by number: ");
         int instructorChoice = scanner.nextInt();
@@ -279,14 +363,14 @@ public class Main {
             return;
         }
 
-        Instructor selectedInstructor = instructors.get(instructorChoice);
+        Instructor selectedInstructor = instructors.get(instructorChoice-1);
         System.out.println("You are now acting as: " + selectedInstructor.getName());
 
         int choice;
 
         do {
             System.out.println("\n*** Instructor Menu ***");
-            System.out.println("1. Select Offering");
+            System.out.println("1. Create Offering");
             System.out.println("2. Cancel Offering");
             System.out.println("3. View My Offerings");
             System.out.println("0. Back to Role Selection");
@@ -303,7 +387,10 @@ public class Main {
                     } else {
                         System.out.println("Select an lesson by number:");
                         for (Lesson lesson : lessons) {
-                            System.out.println(lesson.getLessonId() + ". " + lesson.getName() + " (" + lesson.getLocation().getCity() + ")");
+                            String available = lesson.getAvailability() ? "Available" : "Not Available";
+                            System.out.println(lesson.getLessonId() + ". "
+                            + lesson.getName() + " (" + lesson.getLocation().getCity()
+                            + ") (" + (lesson.getAvailability() ? "Available" : "Not Available") + ")");
                         }
 
                         System.out.print("Enter the number of the lesson: ");
@@ -387,12 +474,21 @@ public class Main {
         System.out.println("You are now acting as: " + selectedClient.getName());
 
         int choice;
+        Client child = null;
 
         do {
             System.out.println("\n*** Client Menu ***");
             System.out.println("1. Book an Offering");
             System.out.println("2. View My Bookings");
             System.out.println("3. Cancel Booking");
+            for (Client client : clients) {
+                if (client.getGuardian() != null && client.getGuardian().equals(selectedClient)) {
+                    child = client;
+                    System.out.println("4. Book for " + child.getName() + "'s Bookings");
+                    System.out.println("5. View " + child.getName() + "'s Bookings");
+                    System.out.println("6. Cancel " + child.getName() + "'s Bookings");
+                }
+            }
             System.out.println("0. Back to Role Selection");
 
             System.out.print("Select an option: ");
@@ -402,33 +498,7 @@ public class Main {
             switch (choice) {
                 case 1:
                     // Book an offering
-                    if (offerings.isEmpty()) {
-                        System.out.println("No offerings.");
-                    } else {
-                        publicMenu(); // Display available offerings
-                        System.out.print("Enter the number of the offering to book: ");
-                        int offeringIndex = scanner.nextInt();
-                        scanner.nextLine();  // Consume the newline
-
-                        // Validate the input to ensure a valid offering index is selected
-                        Offering selectedOffering = null;
-                        // Find the selected offering
-                        for (Offering offering : offerings) {
-                            if (offering.getOfferingId() == offeringIndex) {
-                                selectedOffering = offering;
-                                break;
-                            }
-                        }
-
-                        if (selectedOffering != null && selectedOffering.isAvailable()) {
-                            Booking booking =selectedClient.bookOffering(selectedOffering, bookings);
-                            bookings.add(booking);
-                            System.out.println("Booking " + booking.getId() + " for " + selectedOffering.getLesson().getName() + " has been made by " + selectedClient.getName() + ".");
-                        } else {
-                            System.out.println("Offering selection failed.");
-                        }
-
-                    }
+                    processBooking(selectedClient, null, offerings, bookings);
                     break;
 
                 case 2:
@@ -438,35 +508,35 @@ public class Main {
 
                 case 3:
                     // Cancel booking
-                    List<Booking> myBookings = selectedClient.viewBookings(bookings);
+                    processCancellation(selectedClient, null, bookings);
 
-                    if (myBookings.isEmpty()) {
+                    break;
+
+                case 4:
+                    // Book for guardian's bookings
+                    if (child == null) {
+                        System.out.println("Invalid choice! Please select a valid option.");
                         break;
                     }
+                    processBooking(child, selectedClient, offerings, bookings );
+                    break;
 
-                    System.out.print("Enter the number of the booking to cancel (1 to " + myBookings.size() + "): ");
-                    int bookingIndex = scanner.nextInt();
-                    scanner.nextLine();  // Consume the newline
-
-                    // Validate the input to ensure a valid booking ID is selected
-                    Booking bookingToCancel = null;
-
-                    // Check if the selected booking index corresponds to a valid booking ID
-                    for (Booking booking : myBookings) {
-                        if (booking.getId() == bookingIndex) {
-                            bookingToCancel = booking;
-                            break;
-                        }
+                case 5:
+                    // View guardian's bookings
+                    if (child == null) {
+                        System.out.println("Invalid choice! Please select a valid option.");
+                        break;
                     }
+                    child.viewBookings(bookings);
+                    break;
 
-                    // Check if a valid booking was found
-                    if (bookingToCancel != null) {
-                        selectedClient.cancelBooking(bookings, bookingToCancel);
-                        System.out.println("Booking canceled: " + bookingToCancel.getOffering().getLesson().getName());
-                    } else {
-                        System.out.println("Invalid booking selection.");
+                case 6:
+                    // Cancel guardian's bookings
+                    if (child == null) {
+                        System.out.println("Invalid choice! Please select a valid option.");
+                        break;
                     }
-
+                    processCancellation(child, selectedClient, bookings);
                     break;
 
                 case 0:
@@ -490,9 +560,10 @@ public class Main {
                 Lesson lesson = offering.getLesson();
                 hasInstructorAssigned = true;
                 System.out.println(offering.getOfferingId() + ". " + lesson.getName() 
-                    + " (" + lesson.getLessonType() + ")" 
-                    + " (" + lesson.getLocation().getName() + ")" 
-                    + " (" + lesson.getSchedule().getStartDate() + " to " 
+                    + " (" + lesson.getLessonType() + ")"
+                    + " at " + lesson.getLocation().getName()
+                    + " in " + lesson.getLocation().getCity()
+                    + " ( from" + lesson.getSchedule().getStartDate() + " to " 
                     + lesson.getSchedule().getEndDate()
                     + " at " + lesson.getSchedule().getTimeSlot() + ")"
                     + " Instructor: " + offering.getInstructor().getName());
@@ -517,7 +588,7 @@ public class Main {
         String contactNumber = scanner.nextLine();
         System.out.print("Enter your specialty (e.g., Yoga, Boxing): ");
         String specialty = scanner.nextLine();
-        System.out.print("Enter your availabile locations:1 ");
+        System.out.print("Enter your availabile Cities (separated by commas): ");
         String availability = scanner.nextLine();
     
         // Create new Instructor object and add to instructors list
@@ -551,7 +622,7 @@ public class Main {
             String guardianContactNumber = scanner.nextLine();
             System.out.print("Enter your guardian email: ");
             String guardianEmail = scanner.nextLine();
-            System.out.println("Enter your guardian age: ");
+            System.out.print("Enter your guardian age: ");
             int guardianAge = scanner.nextInt();
             scanner.nextLine();  // Consume the newline
             Client guardian = null;
@@ -570,16 +641,22 @@ public class Main {
 
             // Register the new client with the found or created guardian
             newClient = new Client(name, contactNumber, email, age, guardian);
+            clients.add(newClient);
+            System.out.println("Registration successful! Welcome, " + newClient.getGuardian().getName() + " and " + newClient.getName() + ".");
         } else {
             // Register a new client who is 18 or older
             newClient = new Client(name, contactNumber, email, age, null);
+            clients.add(newClient);
+            System.out.println("Registration successful! Welcome, " + newClient.getName() + ".");
         }
 
-        clients.add(newClient);
-        System.out.println("Registration successful! Welcome, " + newClient.getName() + ".");
         return;
         
     }
+
+
+
+
 
     // Prepopulate with sample data for testing
     private static void prepopulateData() {
@@ -641,7 +718,7 @@ public class Main {
         Lesson lesson12 = new Lesson("Strength Training", "Group", 3, location4, schedule1);
         Lesson lesson13 = new Lesson("Dance Fitness", "Group", 4, location2, schedule4);
         Lesson lesson14 = new Lesson("Meditation & Relaxation", "Private", 1, location5, schedule3);
-    
+        
         // Add olessons to list
         lessons.add(lesson1);
         lessons.add(lesson2);
@@ -686,6 +763,12 @@ public class Main {
         Offering offering4 = new Offering(lesson4, instructor4);
         Offering offering5 = new Offering(lesson5, instructor5);
 
+        lesson1.setAvailability(false);
+        lesson2.setAvailability(false);
+        lesson3.setAvailability(false);
+        lesson4.setAvailability(false);
+        lesson5.setAvailability(false);
+        
         // Add offerings to list
         offerings.add(offering1);
         offerings.add(offering2);
