@@ -7,81 +7,33 @@ public class Offering {
     private static int idCounter = 0;  // Static variable to track ID count
 
     private int offeringId;
-    private String name;
-    private String offeringType;
-    private Location location;
-    private Schedule schedule;
-    private boolean availability;
+    private Lesson lesson;
     private Instructor instructor;
 
-    public Offering(String name, String offeringType, Location location, Schedule schedule) {
+    public Offering(Lesson Lesson, Instructor instructor) {
         this.offeringId = ++idCounter;  // Increment and assign unique ID
-        this.name = name;
-        this.offeringType = offeringType;
-        this.location = location;
-        this.schedule = schedule;
-        this.availability = true;
-        this.instructor = null;
+        this.lesson = Lesson;
+        this.instructor = instructor;
     }
 
     public int getOfferingId() {
         return offeringId;
     }
     
-    public String getName() {
-        return name;
+    public Lesson getLesson() {
+        return lesson;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getOfferingType() {
-        return offeringType;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public Schedule getSchedule() {
-        return schedule;
-    }
-
-    public boolean getAvailability() {
-        return availability;
-    }
-
+    
     public Instructor getInstructor() {
         return instructor;
     }
 
-    public void assignInstructor(Instructor instructor) {
+    public void setInstructor(Instructor instructor) {
         this.instructor = instructor;
     }
 
+
     public boolean isAvailable() {
-        return this.instructor != null && this.availability;
+        return this.lesson.getCapacity() != 0;
     }
-
-    public void setAvailability(boolean availability) {
-        this.availability = availability;
-    }
-
-    public static Offering createOffering(String name, String type, Location location, Schedule schedule, List<Offering> offerings) {
-        for (Offering offering : offerings) {
-            Schedule offerSchedule = offering.getSchedule();
-            if (offerSchedule.getStartDate().isBefore(schedule.getEndDate())
-              && offerSchedule.getEndDate().isAfter(schedule.getStartDate())
-              && offerSchedule.getDayOfWeek().equals(schedule.getDayOfWeek())
-              && offerSchedule.getTimeSlot().equals(schedule.getTimeSlot())
-              && offering.getLocation().getAddress().equals(location.getAddress())
-              ) {
-                  return null;
-            }
-        }
-
-        return new Offering(name, type, location, schedule);
-    }
-
 }

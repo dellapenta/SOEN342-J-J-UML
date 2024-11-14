@@ -2,6 +2,7 @@ package UserManagement;
 
 import java.util.List;
 import OfferingManagement.*;
+import java.util.Iterator;
 
 public class Administrator extends User {
     private String email;
@@ -21,44 +22,47 @@ public class Administrator extends User {
         return password;
     }
 
-    public void createOffering(List<Offering> offerings, String name, String offeringType, Location location, Schedule schedule) {
-        Offering offer = Offering.createOffering(name, offeringType, location, schedule, offerings);
-        if (offer == null) {
-            System.out.println("Offering is not unique.");
+    public void createLesson(List<Lesson> lessons, String name, String lessonType, int capacity, Location location, Schedule schedule) {
+        Lesson lesson = Lesson.createLesson(name, lessonType, capacity, location, schedule, lessons);
+        if (lesson == null) {
+            System.out.println("Lesson is not unique.");
             return;
         }
-        offerings.add(offer); // Add the new offering to the passed list
-        System.out.println("Offering '" + offer.getName() + "' created by " + getName() + ".");
+        lessons.add(lesson); // Add the new lesson to the passed list
+        System.out.println("Lesson '" + lesson.getName() + "' created by " + getName() + ".");
     }
 
-    public void updateOffering(List<Offering> offerings, Offering offering, String newName) {
-        if (offerings.contains(offering)) {
-            System.out.println("Offering '" + offering.getName() + "' updated by " + getName() + ".");
-            offering.setName(newName);
+    public void removeLesson(List<Lesson> lessons, Lesson lesson) {
+        if (lessons.remove(lesson)) {
+            System.out.println("Lesson '" + lesson.getName() + "' removed by " + getName() + ".");
         } else {
-            System.out.println("Offering not found.");
+            System.out.println("Lesson not found.");
         }
     }
 
-    public void removeOffering(List<Offering> offerings, Offering offering) {
-        if (offerings.remove(offering)) {
-            System.out.println("Offering '" + offering.getName() + "' removed by " + getName() + ".");
-        } else {
-            System.out.println("Offering not found.");
-        }
-    }
+    public void removeUser(List<? extends User> users, int id) {
+        boolean found = false;
 
-    public void deleteUserAccount(List<User> users, User user) {
-        if (users.remove(user)) {
-            System.out.println(user.getName() + "'s account has been deleted by " + getName() + ".");
-        } else {
-            System.out.println("User not found.");
+        // Use an iterator to safely remove elements during iteration
+        Iterator<? extends User> iterator = users.iterator();
+        while (iterator.hasNext()) {
+            User user = iterator.next();
+            if (user.getUserId() == id) {
+                iterator.remove();
+                System.out.println(user.getName() + "'s account has been removed by " + getName() + ".");
+                found = true;
+                break;
+            }
+        }
+    
+        if (!found) {
+            System.out.println("User with ID " + id + " not found.");
         }
     }
 
     public void viewBooking(List<Booking> bookings) {
         for (Booking booking : bookings) {
-            System.out.println(booking.getId() + ". " + booking.getOffering().getName() + " - " + (booking.getUser().getName()));
+            System.out.println(booking.getId() + ". " + booking.getOffering().getLesson().getName() + " - " + (booking.getUser().getName()));
         }
     }
 }

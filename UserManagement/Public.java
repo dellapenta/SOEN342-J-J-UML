@@ -9,11 +9,15 @@ public class Public {
         System.out.println("Available Public Offerings:");
         for (Offering offering : offerings) {
             if (offering.isAvailable() == true) {
-                System.out.println("Offering: " + offering.getName() +
-                                   ", Location: " + offering.getLocation().getName() +
-                                   ", Instructor: " + offering.getInstructor().getName() +
-                                   ", Schedule: " + offering.getSchedule().getStartDate() +
-                                   " to " + offering.getSchedule().getEndDate());
+                Lesson lesson = offering.getLesson();
+                System.out.println(lesson.getName() + " class is available" +
+                                   " at " + lesson.getLocation().getName() +
+                                   " in " + lesson.getLocation().getAddress() +
+                                   " on " + lesson.getSchedule().getDayOfWeek() +
+                                   " from " + lesson.getSchedule().getTimeSlot() +
+                                   ", from " + lesson.getSchedule().getStartDate() +
+                                   " to " + lesson.getSchedule().getEndDate());
+
             }
         }
     }

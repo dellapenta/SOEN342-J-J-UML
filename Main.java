@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+    private static List<Lesson> lessons = new ArrayList<>();
     private static List<Offering> offerings = new ArrayList<>();
     private static List<Instructor> instructors = new ArrayList<>();
     private static List<Client> clients = new ArrayList<>();
@@ -77,18 +78,20 @@ public class Main {
 
         do {
             System.out.println("\n*** Administrator Menu ***");
-            System.out.println("1. Create Offering");
-            System.out.println("2. Update Offering");
-            System.out.println("3. Remove Offering");
-            System.out.println("4. View Offerings");
-            System.out.println("5. View Clients");
-            System.out.println("6. View Instructors");
-            System.out.println("7. View Bookings");
+            System.out.println("1. Create Lesson");
+            System.out.println("2. Reomve Lesson");
+            System.out.println("3. Remove Client");
+            System.out.println("4. Remove Instructor");
+            System.out.println("5. View Lessons");
+            System.out.println("6. View Offerings");
+            System.out.println("7. View Clients");
+            System.out.println("8. View Instructors");
+            System.out.println("9. View Bookings");
             System.out.println("0. Back to Role Selection");
             System.out.print("Select an option: ");
             choice = scanner.nextInt();
             scanner.nextLine();  // Consume newline
-
+            
             switch (choice) {
                 case 1:
                     // Input handling for creating an offering (same as before)
@@ -96,14 +99,14 @@ public class Main {
                     String name = scanner.nextLine();
                     System.out.print("Enter offering Type: ");
                     String type = scanner.nextLine();
+                    System.out.println("Enter the capacity:");
+                    int capacity = scanner.nextInt();
                     System.out.print("Enter location name: ");
                     String locationName = scanner.nextLine();
                     System.out.print("Enter city: ");
                     String city = scanner.nextLine();
-                    System.out.print("Enter capacity: ");
-                    int capacity = scanner.nextInt();
                     scanner.nextLine();  // Consume newline
-                    Location location = new Location(locationName, city, capacity);
+                    Location location = new Location(locationName, city);
 
                     System.out.print("Enter start date (yyyy-mm-dd): ");
                     LocalDate startDate = LocalDate.parse(scanner.nextLine());
@@ -119,85 +122,99 @@ public class Main {
                     String timeSlot = startTime + " - " + endTime;
                     Schedule schedule = new Schedule(startDate, endDate, timeSlot, dayOfWeek);
 
-                    // Delegate to Administrator to create offering
-                    admin.createOffering(offerings, name, type, location, schedule);
+                    // Delegate to Administrator to create lesson
+                    admin.createLesson(lessons, name, type, capacity, location, schedule);
                     break;
 
-                    case 2:
-                    // Input handling for updating an offering
-                    if (offerings.isEmpty()) {
-                        System.out.println("No offerings to update.");
+                case 2:
+                    // Input handling for removing an lesson
+                    if (lessons.isEmpty()) {
+                        System.out.println("No lessons to remove.");
                     } else {
-                        System.out.println("Select offering to update:");
-                        int index = 1; // To keep track of the index for user display
-                        for (Offering offering : offerings) {
-                            System.out.println(offering.getOfferingId() + ". " + offering.getName());
-                        }
-                        int selection = scanner.nextInt();
-                        scanner.nextLine();  // Consume newline
-                
-                        Offering offeringToUpdate = null;  // Initialize variable to hold selected offering
-                        for (Offering offering : offerings) {
-                            if (offering.getOfferingId() == selection) { // Compare with the selected ID
-                                offeringToUpdate = offering;
-                                break;  // Exit loop once found
-                            }
-                        }
-                
-                        if (offeringToUpdate != null) {
-                            System.out.print("Enter new offering type: ");
-                            String newType = scanner.nextLine();
-                    
-                            // Delegate to Administrator to update offering
-                            admin.updateOffering(offerings, offeringToUpdate, newType);
-                        } else {
-                            System.out.println("No offering found with ID: " + selection);
-                        }
-                    }
-                    break;
-                
-                case 3:
-                    // Input handling for removing an offering
-                    if (offerings.isEmpty()) {
-                        System.out.println("No offerings to remove.");
-                    } else {
-                        System.out.println("Select offering to remove:");
-                        for (Offering offering : offerings) {
-                            System.out.println(offering.getOfferingId() + ". " + offering.getName()); // Display the offering name
+                        System.out.println("Select lesson to remove:");
+                        for (Lesson lesson : lessons) {
+                            System.out.println(lesson.getLessonId() + ". " + lesson.getName()); // Display the lesson name
                         }
                         int selection = scanner.nextInt();
                         scanner.nextLine();  // Consume newline
                         
-                        Offering offeringToRemove = null; // Initialize variable to hold selected offering
-                        for (Offering offering : offerings) {
-                            if (offering.getOfferingId() == selection) { // Compare with the selected ID
-                                offeringToRemove = offering;
+                        Lesson lessonToRemove = null; // Initialize variable to hold selected lesson
+                        for (Lesson lesson : lessons) {
+                            if (lesson.getLessonId() == selection) { // Compare with the selected ID
+                                lessonToRemove = lesson;
                                 break;  // Exit loop once found
                             }
                         }
                 
-                        if (offeringToRemove != null) {
-                            // Delegate to Administrator to remove offering
-                            admin.removeOffering(offerings, offeringToRemove);
+                        if (lessonToRemove != null) {
+                            // Delegate to Administrator to remove lesson
+                            admin.removeLesson(lessons, lessonToRemove);
+                            for (Offering offering : offerings) {
+                                if (offering.getLesson() == lessonToRemove) {
+                                    offerings.remove(offering);
+                                }
+                            }
                         } else {
                             System.out.println("No offering found with ID: " + selection);
                         }
                     }
                     break;
 
+                case 3:
+                    // Input handling for removing a client
+                    if (clients.isEmpty()) {
+                        System.out.println("No clients to remove.");
+                    } else {
+                        System.out.println("Select client to remove:");
+                        for (Client client : clients) {
+                            System.out.println("- " + client.getUserId() + ". " + client.getName());
+                        }
+                        int clientId = scanner.nextInt();
+                        scanner.nextLine();
+                        admin.removeUser(clients, clientId);
+                    }
+                    break;
+
                 case 4:
+                    // Input handling for removing an instructor
+                    if (instructors.isEmpty()) {
+                        System.out.println("No instructors to remove.");
+                    } else {
+                        System.out.println("Select instructor to remove:");
+                        for (Instructor instructor : instructors) {
+                            System.out.println("- " + instructor.getUserId() + ". " + instructor.getName());
+                        }
+                        int instructorId = scanner.nextInt();
+                        scanner.nextLine();
+                        admin.removeUser(instructors, instructorId);
+                    }
+                    break;
+
+                case 5:
+                    // View lessons
+                    if (lessons.isEmpty()) {
+                        System.out.println("No lessons available.");
+                    } else {
+                        System.out.println("\nAvailable Lessons:");
+                        for (Lesson lesson : lessons) {
+                            System.out.println("- " + lesson.getName() + " (" + lesson.getLessonType() + " )");
+                        }
+                    }
+                    break;
+
+                case 6:
                     // View offerings
                     if (offerings.isEmpty()) {
                         System.out.println("No offerings available.");
                     } else {
                         System.out.println("\nAvailable Offerings:");
                         for (Offering offering : offerings) {
-                            System.out.println("- " + offering.getOfferingId() + ". " + offering.getName() + " (" + offering.getOfferingType() + " )");
+                            System.out.println("- " + offering.getOfferingId() + ". " + offering.getLesson().getName() + " (" + offering.getLesson().getLessonType() + " )");
                         }
                     }
                     break;
 
-                case 5:
+                case 7:
                     // View Clients
                     if (clients.isEmpty()) {
                         System.out.println("No clients available.");
@@ -209,7 +226,7 @@ public class Main {
                     }
                     break;
 
-                case 6:
+                case 8:
                     // View Instructors
                     if (instructors.isEmpty()) {
                         System.out.println("No instructors available.");
@@ -221,14 +238,14 @@ public class Main {
                     }
                     break;
 
-                case 7:
+                case 9:
                     // View Bookings
                     if (bookings.isEmpty()) {
                         System.out.println("No bookings available.");
                     } else {
-                        System.out.println("\nAvailable Bookings:");
+                        System.out.println("\nAll Bookings:");
                         for (Booking booking : bookings) {
-                            System.out.println("- " + booking.getOffering().getName() + " - " + booking.getUser().getName());
+                            System.out.println("- " + booking.getOffering().getLesson().getName() + " - " + booking.getUser().getName());
                         }
                     }
                     break;
@@ -251,7 +268,7 @@ public class Main {
         // Prompt for instructor identity selection
         System.out.println("\n*** Select Instructor Identity ***");
         for (int i = 0; i < instructors.size(); i++) {
-            System.out.println((i + 1) + ". " + instructors.get(i).getName());
+            System.out.println((i) + ". " + instructors.get(i).getName());
         }
         System.out.print("Select an instructor by number: ");
         int instructorChoice = scanner.nextInt();
@@ -262,7 +279,7 @@ public class Main {
             return;
         }
 
-        Instructor selectedInstructor = instructors.get(instructorChoice - 1);
+        Instructor selectedInstructor = instructors.get(instructorChoice);
         System.out.println("You are now acting as: " + selectedInstructor.getName());
 
         int choice;
@@ -270,6 +287,8 @@ public class Main {
         do {
             System.out.println("\n*** Instructor Menu ***");
             System.out.println("1. Select Offering");
+            System.out.println("2. Cancel Offering");
+            System.out.println("3. View My Offerings");
             System.out.println("0. Back to Role Selection");
             System.out.print("Select an option: ");
             choice = scanner.nextInt();
@@ -278,36 +297,64 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    // Instructor selects an offering
-                    if (offerings.isEmpty()) {
-                        System.out.println("No offerings available to select.");
+                    // Instructor selects an lesson
+                    if (lessons.isEmpty()) {
+                        System.out.println("No lessons available to select.");
                     } else {
-                        System.out.println("Select an offering by number:");
-                        for (Offering offering : offerings) {
-                            System.out.println(offering.getOfferingId() + ". " + offering.getName() + " (" + offering.getLocation().getAddress() + ")");
+                        System.out.println("Select an lesson by number:");
+                        for (Lesson lesson : lessons) {
+                            System.out.println(lesson.getLessonId() + ". " + lesson.getName() + " (" + lesson.getLocation().getCity() + ")");
                         }
 
-                        System.out.print("Enter the number of the offering: ");
-                        int offeringIndex = scanner.nextInt();
+                        System.out.print("Enter the number of the lesson: ");
+                        int lessonIndex = scanner.nextInt();
                         scanner.nextLine();  // Consume the newline
 
-                        Offering offeringToSelect = null;
+                        Lesson lessonToSelect = null;
 
-                        // Find the selected offering
-                        for (Offering offering : offerings) {
-                            if (offering.getOfferingId() == offeringIndex) {
-                                offeringToSelect = offering;
+                        // Find the selected lesson
+                        for (Lesson lesson : lessons) {
+                            if (lesson.getLessonId() == lessonIndex) {
+                                lessonToSelect = lesson;
                                 break;
                             }
                         }
 
-                        if (offeringToSelect != null) {
-                            selectedInstructor.selectOffering(offeringToSelect);
+                        if (lessonToSelect != null) {
+                            Offering newOffering = selectedInstructor.createOffering(lessonToSelect);
+                            offerings.add(newOffering);
                         } else {
-                            System.out.println("Offering selection failed.");
+                            System.out.println("Lesson selection failed.");
                         }
                     }
                     break;
+                case 2:
+                    // cancel an offering
+                    List<Offering> myOfferings = selectedInstructor.viewMyOfferings(offerings);
+
+                    if (myOfferings.isEmpty()) {
+                        break;
+                    }
+                    System.out.print("Enter the number of the offering: ");
+                    int offeringIndexToRemove = scanner.nextInt();
+                    scanner.nextLine();  // Consume the newline
+
+                    Offering offeringToRemove = null;
+
+                    // Find the cancel to remove
+                    for (Offering offering : myOfferings) {
+                        if (offering.getOfferingId() == offeringIndexToRemove) {
+                            offeringToRemove = offering;
+                            selectedInstructor.unassignOffering(offerings, offeringToRemove);
+                            break;
+                        }
+                    }
+
+                    System.out.println("Failed to remove offering.");
+
+                case 3:
+                    // View my offerings
+                    selectedInstructor.viewMyOfferings(offerings);
 
                 case 0:
                     // Back to role selection
@@ -376,7 +423,7 @@ public class Main {
                         if (selectedOffering != null && selectedOffering.isAvailable()) {
                             Booking booking =selectedClient.bookOffering(selectedOffering, bookings);
                             bookings.add(booking);
-                            System.out.println("Booking " + booking.getId() + " for " + selectedOffering.getName() + " has been made by " + selectedClient.getName() + ".");
+                            System.out.println("Booking " + booking.getId() + " for " + selectedOffering.getLesson().getName() + " has been made by " + selectedClient.getName() + ".");
                         } else {
                             System.out.println("Offering selection failed.");
                         }
@@ -389,45 +436,37 @@ public class Main {
                     selectedClient.viewBookings(bookings);
                     break;
 
-                    case 3:
+                case 3:
                     // Cancel booking
-                    List<Booking> myBookings = new ArrayList<>();
-                    for (Booking booking : bookings) {
-                        if (booking.getUser().getUserId() == selectedClient.getUserId()) {
-                            myBookings.add(booking);
-                        }
-                    }
+                    List<Booking> myBookings = selectedClient.viewBookings(bookings);
 
                     if (myBookings.isEmpty()) {
-                        System.out.println("No bookings found for user " + selectedClient.getName() + ".");
-                    } else {
-                        // View user's bookings
-                        selectedClient.viewBookings(myBookings);
-
-                        System.out.print("Enter the number of the booking to cancel (1 to " + myBookings.size() + "): ");
-                        int bookingIndex = scanner.nextInt();
-                        scanner.nextLine();  // Consume the newline
-
-                        // Validate the input to ensure a valid booking ID is selected
-                        Booking bookingToCancel = null;
-
-                        // Check if the selected booking index corresponds to a valid booking ID
-                        for (Booking booking : myBookings) {
-                            if (booking.getId() == bookingIndex) {
-                                bookingToCancel = booking;
-                                break;
-                            }
-                        }
-
-                        // Check if a valid booking was found
-                        if (bookingToCancel != null) {
-                            selectedClient.cancelBooking(bookings, bookingToCancel);
-                            System.out.println("Booking canceled: " + bookingToCancel.getOffering().getName());
-                        } else {
-                            System.out.println("Invalid booking selection.");
-                        }
-
+                        break;
                     }
+
+                    System.out.print("Enter the number of the booking to cancel (1 to " + myBookings.size() + "): ");
+                    int bookingIndex = scanner.nextInt();
+                    scanner.nextLine();  // Consume the newline
+
+                    // Validate the input to ensure a valid booking ID is selected
+                    Booking bookingToCancel = null;
+
+                    // Check if the selected booking index corresponds to a valid booking ID
+                    for (Booking booking : myBookings) {
+                        if (booking.getId() == bookingIndex) {
+                            bookingToCancel = booking;
+                            break;
+                        }
+                    }
+
+                    // Check if a valid booking was found
+                    if (bookingToCancel != null) {
+                        selectedClient.cancelBooking(bookings, bookingToCancel);
+                        System.out.println("Booking canceled: " + bookingToCancel.getOffering().getLesson().getName());
+                    } else {
+                        System.out.println("Invalid booking selection.");
+                    }
+
                     break;
 
                 case 0:
@@ -448,13 +487,14 @@ public class Main {
         System.out.println("\nAvailable Offerings:");
         for (Offering offering : offerings) {
             if (offering.isAvailable() && offering.getInstructor() != null) {
+                Lesson lesson = offering.getLesson();
                 hasInstructorAssigned = true;
-                System.out.println(offering.getOfferingId() + ". " + offering.getName() 
-                    + " (" + offering.getOfferingType() + ")" 
-                    + " (" + offering.getLocation().getName() + ")" 
-                    + " (" + offering.getSchedule().getStartDate() + " to " 
-                    + offering.getSchedule().getEndDate()
-                    + " at " + offering.getSchedule().getTimeSlot() + ")"
+                System.out.println(offering.getOfferingId() + ". " + lesson.getName() 
+                    + " (" + lesson.getLessonType() + ")" 
+                    + " (" + lesson.getLocation().getName() + ")" 
+                    + " (" + lesson.getSchedule().getStartDate() + " to " 
+                    + lesson.getSchedule().getEndDate()
+                    + " at " + lesson.getSchedule().getTimeSlot() + ")"
                     + " Instructor: " + offering.getInstructor().getName());
             }
         }
@@ -544,11 +584,11 @@ public class Main {
     // Prepopulate with sample data for testing
     private static void prepopulateData() {
         // Sample locations
-        Location location1 = new Location("EV Building Room 7", "Montreal", 20);
-        Location location2 = new Location("Downtown Fitness Center", "Montreal", 15);
-        Location location3 = new Location("Community Gym", "Laval", 25);
-        Location location4 = new Location("Sports Complex", "Quebec City", 30);
-        Location location5 = new Location("Health Hub", "Ottawa", 10);
+        Location location1 = new Location("EV Building Room 7", "Montreal");
+        Location location2 = new Location("Downtown Fitness Center", "Montreal");
+        Location location3 = new Location("Community Gym", "Laval");
+        Location location4 = new Location("Sports Complex", "Quebec City");
+        Location location5 = new Location("Health Hub", "Ottawa");
     
         // Sample schedules
         Schedule schedule1 = new Schedule(
@@ -586,37 +626,37 @@ public class Main {
                 "Friday"
         );
     
-        // Sample offerings
-        Offering offering1 = new Offering("Judo Class", "Group", location1, schedule1);
-        Offering offering2 = new Offering("Yoga Session", "Individual", location2, schedule2);
-        Offering offering3 = new Offering("Boxing Training", "Group", location3, schedule3);
-        Offering offering4 = new Offering("Pilates Class", "Group", location1, schedule2);
-        Offering offering5 = new Offering("CrossFit", "Individual", location3, schedule1);
-        Offering offering6 = new Offering("Swimming Lessons", "Group", location4, schedule4);
-        Offering offering7 = new Offering("Karate for Beginners", "Group", location5, schedule5);
-        Offering offering8 = new Offering("Advanced Pilates", "Individual", location2, schedule3);
-        Offering offering9 = new Offering("Zumba Class", "Group", location1, schedule4);
-        Offering offering10 = new Offering("Kickboxing Basics", "Individual", location5, schedule2);
-        Offering offering11 = new Offering("Personal Training", "Individual", location3, schedule5);
-        Offering offering12 = new Offering("Strength Training", "Group", location4, schedule1);
-        Offering offering13 = new Offering("Dance Fitness", "Group", location2, schedule4);
-        Offering offering14 = new Offering("Meditation & Relaxation", "Individual", location5, schedule3);
+        // Sample lessons
+        Lesson lesson1 = new Lesson("Judo Class", "Group", 5, location1, schedule1);
+        Lesson lesson2 = new Lesson("Yoga Session", "Private", 1, location2, schedule2);
+        Lesson lesson3 = new Lesson("Boxing Training", "Group", 3, location3, schedule3);
+        Lesson lesson4 = new Lesson("Pilates Class", "Group", 2, location1, schedule2);
+        Lesson lesson5 = new Lesson("CrossFit", "Private", 1, location3, schedule1);
+        Lesson lesson6 = new Lesson("Swimming Lessons", "Group", 3, location4, schedule4);
+        Lesson lesson7 = new Lesson("Karate for Beginners", "Group", 2, location5, schedule5);
+        Lesson lesson8 = new Lesson("Advanced Pilates", "Private", 1, location2, schedule3);
+        Lesson lesson9 = new Lesson("Zumba Class", "Group", 3, location1, schedule4);
+        Lesson lesson10 = new Lesson("Kickboxing Basics", "Private", 1, location5, schedule2);
+        Lesson lesson11 = new Lesson("Personal Training", "Private", 1, location3, schedule5);
+        Lesson lesson12 = new Lesson("Strength Training", "Group", 3, location4, schedule1);
+        Lesson lesson13 = new Lesson("Dance Fitness", "Group", 4, location2, schedule4);
+        Lesson lesson14 = new Lesson("Meditation & Relaxation", "Private", 1, location5, schedule3);
     
-        // Add offerings to list
-        offerings.add(offering1);
-        offerings.add(offering2);
-        offerings.add(offering3);
-        offerings.add(offering4);
-        offerings.add(offering5);
-        offerings.add(offering6);
-        offerings.add(offering7);
-        offerings.add(offering8);
-        offerings.add(offering9);
-        offerings.add(offering10);
-        offerings.add(offering11);
-        offerings.add(offering12);
-        offerings.add(offering13);
-        offerings.add(offering14);
+        // Add olessons to list
+        lessons.add(lesson1);
+        lessons.add(lesson2);
+        lessons.add(lesson3);
+        lessons.add(lesson4);
+        lessons.add(lesson5);
+        lessons.add(lesson6);
+        lessons.add(lesson7);
+        lessons.add(lesson8);
+        lessons.add(lesson9);
+        lessons.add(lesson10);
+        lessons.add(lesson11);
+        lessons.add(lesson12);
+        lessons.add(lesson13);
+        lessons.add(lesson14);
     
         // Sample instructors
         Instructor instructor1 = new Instructor("Grace", "5141234567", "Judo", "Montreal, Laval");
@@ -628,6 +668,7 @@ public class Main {
         Instructor instructor7 = new Instructor("Parker", "5147890123", "Karate", "Quebec City");
         Instructor instructor8 = new Instructor("Sam", "5148901234", "Dance Fitness", "Laval, Montreal");
     
+
         // Add instructors to list
         instructors.add(instructor1);
         instructors.add(instructor2);
@@ -638,15 +679,19 @@ public class Main {
         instructors.add(instructor7);
         instructors.add(instructor8);
     
-        // Optionally assign instructors to offerings
-        offering1.assignInstructor(instructor1);
-        offering2.assignInstructor(instructor2);
-        offering3.assignInstructor(instructor3);
-        offering4.assignInstructor(instructor4);
-        offering5.assignInstructor(instructor5);
-        offering6.assignInstructor(instructor6);
-        offering7.assignInstructor(instructor7);
-        offering9.assignInstructor(instructor8);
+        // Sample offerings
+        Offering offering1 = new Offering(lesson1, instructor1);
+        Offering offering2 = new Offering(lesson2, instructor2);
+        Offering offering3 = new Offering(lesson3, instructor3);
+        Offering offering4 = new Offering(lesson4, instructor4);
+        Offering offering5 = new Offering(lesson5, instructor5);
+
+        // Add offerings to list
+        offerings.add(offering1);
+        offerings.add(offering2);
+        offerings.add(offering3);
+        offerings.add(offering4);
+        offerings.add(offering5);
 
         // Sample Clients
         Client client1 = new Client("Alice Smith", "123-456-7890", "alice@example.com", 28, null);

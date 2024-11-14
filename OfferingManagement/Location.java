@@ -4,15 +4,13 @@ public class Location {
     private static int idCounter = 0; // Static variable to keep track of the last assigned ID
     private int locationId;
     private String name;
-    private String address;
-    private int capacity;
+    private String city;
 
     // Constructor
-    public Location(String name, String address, int capacity) {
+    public Location(String name, String city) {
         this.locationId = ++idCounter; // Increment and assign the new ID
         this.name = name;
-        this.address = address;
-        this.capacity = capacity;
+        this.city = city;
     }
 
     // Getters
@@ -24,11 +22,8 @@ public class Location {
         return name;
     }
 
-    public String getAddress() {
-        return address;
+    public String getCity() {
+        return city;
     }
 
-    public int getCapacity() {
-        return capacity;
-    }
 }

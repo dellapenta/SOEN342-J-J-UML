@@ -1,7 +1,8 @@
 package UserManagement;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+
 import OfferingManagement.*;
 
 public class Instructor extends User {
@@ -28,21 +29,56 @@ public class Instructor extends User {
         return availablecity; // Return the available cities
     }
 
-    public void selectOffering(Offering offering) {
+    public Offering createOffering(Lesson lesson) {
         // Split the available cities by comma and trim any extra spaces
         String[] availableCitiesArray = availablecity.split(",");
 
         // Iterate through the available cities
         for (String city : availableCitiesArray) {
-            if (city.trim().equalsIgnoreCase(offering.getLocation().getAddress())) {
-                offering.assignInstructor(this);
-                System.out.println("Instructor " + getName() + " assigned to offering '" + offering.getName() + "'.");
-                return;
+            if (city.trim().equalsIgnoreCase(lesson.getLocation().getCity())) {
+                if (lesson.getAvailability() == true) {
+                    System.out.println("Instructor " + getName() + " assigned to offering '" + lesson.getName() + "'.");
+                    return new Offering(lesson, this);
+                } else {
+                    System.out.println("This offering is already assigned to another instructor.");
+                    return null;
+                }
+
             }
         }
 
         // If no matching city was found
-        System.out.println("Instructor " + getName() + " cannot assign to offering '" + offering.getName() + "' because it is not available in " + availablecity + ".");
+        System.out.println("Instructor " + getName() + " cannot assign to offering '" + lesson.getName() + "' because it is not available in " + availablecity + ".");
+        return null;
     }
 
+    public void unassignOffering(List<Offering> offerings, Offering offering) {
+        if (offering.getInstructor() == this) {
+            offering.setInstructor(null);
+            System.out.println("Instructor " + getName() + " unassigned from offering '" + offering.getLesson().getName() + "'.");
+            offerings.remove(offering);
+        } else {
+            System.out.println("Instructor " + getName() + " is not assigned to offering '" + offering.getLesson().getName() + "'.");
+        }
+    }
+
+    public List<Offering> viewMyOfferings(List<Offering> offerings) {
+    List<Offering> assignedOfferings = new ArrayList<>();
+    System.out.println("Offerings for user " + getName() + ":");
+    boolean found = false;
+        for ( Offering offering : offerings) {
+            if (offering.getInstructor().getUserId() == this.getUserId()) {
+                System.out.println(offering.getOfferingId() + ". " + offering.getLesson().getName() );
+                assignedOfferings.add(offering);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No offerings found for user " + getName() + ".");
+            return null;
+        } else {
+            return assignedOfferings;
+        }
+  }
 }
