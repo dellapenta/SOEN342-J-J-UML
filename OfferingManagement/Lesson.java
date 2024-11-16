@@ -1,84 +1,44 @@
 package OfferingManagement;
 
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import UserManagement.*;
 public class Lesson {
-    private static int idCounter = 0;  // Static variable to track ID count
-
-    private int lessonId;
+    private int id;
     private String name;
-    private String lessonType;
+    private String type;
     private int capacity;
-    private Location location;
-    private Schedule schedule;
-    private boolean availability;
+    private int locationId;
+    private int scheduleId;
 
-    public Lesson(String name, String lessonType, int capacity, Location location, Schedule schedule) {
-        this. lessonId = ++idCounter;  // Increment and assign unique ID
+    public Lesson(int id, String name, String type, int capacity, int locationId, int scheduleId) {
+        this.id = id;
         this.name = name;
-        this. lessonType =  lessonType;
+        this.type = type;
         this.capacity = capacity;
-        this.location = location;
-        this.schedule = schedule;
-        this.availability = true;
+        this.locationId = locationId;
+        this.scheduleId = scheduleId;
     }
 
-    public int getLessonId() {
-        return lessonId;
-    }
-    
-    public String getName() {
-        return name;
-    }
-
-    public String getLessonType() {
-        return lessonType;
-    }
-
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(int nb) {
-        this.capacity = this.capacity + nb;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public Schedule getSchedule() {
-        return schedule;
-    }
-
-    public boolean getAvailability() {
-        return availability;
-    }
-    
-
-    public boolean isAvailable() {
-        return this.availability;
-    }
-
-    public void setAvailability(boolean availability) {
-        this.availability = availability;
-    }
-
-    public static Lesson createLesson(String name, String type, int capacity, Location location, Schedule schedule, List<Lesson> lessons) {
-        for (Lesson lesson : lessons) {
-            Schedule lessonSchedule = lesson.getSchedule();
-            if (lessonSchedule.getStartDate().isBefore(schedule.getEndDate())
-              && lessonSchedule.getEndDate().isAfter(schedule.getStartDate())
-              && lessonSchedule.getDayOfWeek().equals(schedule.getDayOfWeek())
-              && lessonSchedule.getTimeSlot().equals(schedule.getTimeSlot())
-              && lesson.getLocation().getCity().equals(location.getCity())
-              ) {
-                  return null;
+    public static void saveToDatabase(Connection conn, String name, String type, int capacity, int locationId, int scheduleId) throws SQLException {
+        String sql = "INSERT INTO Lessons (name, type, capacity, location_id, schedule_id) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, name);
+            stmt.setString(2, type);
+            stmt.setInt(3, capacity);
+            stmt.setInt(4, locationId);
+            stmt.setInt(5, scheduleId);
+            stmt.executeUpdate();
+            ResultSet keys = stmt.getGeneratedKeys();
+            if (keys.next()) {
+                System.out.println("Lesson: " + name + " is created with ID " + keys.getInt(1)); // Print generated ID
             }
+        } catch (SQLException e) {
+            System.err.println("Failed to save lesson: " + e.getMessage());
+            throw e; // Re-throw exception after logging it
         }
-
-        return new Lesson(name, type, capacity, location, schedule);
     }
-
 }

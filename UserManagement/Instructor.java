@@ -1,84 +1,160 @@
 package UserManagement;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import OfferingManagement.*;
-
-public class Instructor extends User {
+public class Instructor {
+    private String name;
     private String phoneNumber;
     private String specialization;
     private String availablecity; // Variable can now contain multiple cities separated by a comma
 
     public Instructor(String name, String phoneNumber, String specialization, String availablecity) {
-        super(name);
+        this.name = name;
         this.phoneNumber = phoneNumber;
         this.specialization = specialization;
-        this.availablecity = availablecity; // Initialize the available cities
+        this.availablecity = availablecity;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public static void saveToDatabase(Connection conn, String name, String phoneNumber, String specialization, String availablecity) throws SQLException {
+        String sql = "INSERT INTO Instructors (name, phone_number, specialization, available_cities) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, name);
+            stmt.setString(2, phoneNumber);
+            stmt.setString(3, specialization);
+            stmt.setString(4, availablecity);
+            stmt.executeUpdate();
+            ResultSet keys = stmt.getGeneratedKeys();
+            if (keys.next()) {
+                System.out.println("Instructor " + name + " is saved to database with ID: " + keys.getInt(1));
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to save instructor to database: " + e.getMessage());
+            throw e;
+        }
     }
 
-    public String getSpecialization() {
-        return specialization;
-    }
 
-    public String getAvailableCity() {
-        return availablecity; // Return the available cities
-    }
+    public static void createOffering(Connection conn, int instructorId, int lessonId) {
+        // SQL to get the instructor's city
+        String instructorCitySql = "SELECT available_cities FROM Instructors WHERE id = ?";
+        String lessonLocationCitySql = "SELECT l.city FROM Locations l JOIN Lessons le ON l.id = le.location_id WHERE le.id = ?";
 
-    public Offering createOffering(Lesson lesson) {
-        // Split the available cities by comma and trim any extra spaces
-        String[] availableCitiesArray = availablecity.split(",");
+        try {
+            // Step 1: Retrieve the instructor's city
+            String instructorCity = null;
+            try (PreparedStatement stmt = conn.prepareStatement(instructorCitySql)) {
+                stmt.setInt(1, instructorId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        instructorCity = rs.getString("available_cities");
+                    }
+                }
+            }
 
-        // Iterate through the available cities
-        for (String city : availableCitiesArray) {
-            if (city.trim().equalsIgnoreCase(lesson.getLocation().getCity())) {
-                if (lesson.getAvailability() == true) {
-                    System.out.println("Instructor " + getName() + " assigned to offering '" + lesson.getName() + "'.");
-                    return new Offering(lesson, this);
-                } else {
-                    System.out.println("This offering is already assigned to another instructor.");
-                    return null;
+            // Step 2: Retrieve the location's city for the given lesson
+            String locationCity = null;
+            try (PreparedStatement stmt = conn.prepareStatement(lessonLocationCitySql)) {
+                stmt.setInt(1, lessonId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        locationCity = rs.getString("city");
+                    }
+                }
+            }
+
+            // Step 3: Compare the cities by splitting the instructor's city
+            if (instructorCity != null && locationCity != null) {
+                // Split the instructor's city by commas
+                String[] instructorCityParts = instructorCity.split(",");
+
+                // Check if any part of the instructor's city matches the location's city
+                boolean cityMatches = false;
+                for (String part : instructorCityParts) {
+                    if (part.trim().equalsIgnoreCase(locationCity.trim())) {
+                        cityMatches = true;
+                        break;
+                    }
                 }
 
+                // Step 4: Proceed based on the city match
+                if (cityMatches) {
+                    // Cities match, so proceed to create the offering
+                    String sql = "INSERT INTO Offerings (lesson_id, instructor_id) VALUES (?, ?)";
+                    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                        stmt.setInt(1, lessonId);
+                        stmt.setInt(2, instructorId);
+                        stmt.executeUpdate();
+                        System.out.println("Offering created successfully.");
+                    } catch (SQLException e) {
+                        System.err.println("Failed to create offering: " + e.getMessage());
+                    }
+                } else {
+                    // Cities do not match
+                    System.out.println("Instructor's city does not match the location's city. Offering creation aborted.");
+                }
+            } else {
+                System.out.println("Instructor's city or location's city is null.");
             }
-        }
 
-        // If no matching city was found
-        System.out.println("Instructor " + getName() + " cannot assign to offering '" + lesson.getName() + "' because it is not available in " + availablecity + ".");
-        return null;
-    }
-
-    public void unassignOffering(List<Offering> offerings, Offering offering) {
-        if (offering.getInstructor() == this) {
-            offering.setInstructor(null);
-            System.out.println("Instructor " + getName() + " unassigned from offering '" + offering.getLesson().getName() + "'.");
-            offerings.remove(offering);
-        } else {
-            System.out.println("Instructor " + getName() + " is not assigned to offering '" + offering.getLesson().getName() + "'.");
+        } catch (SQLException e) {
+            System.err.println("Failed to create offering due to an error: " + e.getMessage());
         }
     }
 
-    public List<Offering> viewMyOfferings(List<Offering> offerings) {
-    List<Offering> assignedOfferings = new ArrayList<>();
-    System.out.println("Offerings for user " + getName() + ":");
-    boolean found = false;
-        for ( Offering offering : offerings) {
-            if ( offering.getInstructor() != null && offering.getInstructor().getUserId() == this.getUserId()) {
-                System.out.println(offering.getLesson().getLessonId() + ". " + offering.getLesson().getName() );
-                assignedOfferings.add(offering);
+
+    public static void cancelOffering(Connection conn, int instructorId, int offeringId) {
+        String sql = "DELETE FROM Offerings WHERE id = ? AND instructor_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, offeringId);
+            stmt.setInt(2, instructorId);
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                System.out.println("Offering canceled successfully.");
+            } else {
+                System.out.println("Offering not found.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to cancel offering: " + e.getMessage());
+        }
+    }
+
+    public static void viewOfferings(Connection conn, int instructorId) {
+        // SQL query with JOINs to fetch offering details along with lesson and instructor names
+        String sql = "SELECT o.id AS offering_id, o.lesson_id, l.name AS lesson_name, i.name AS instructor_name " +
+                "FROM Offerings o " +
+                "JOIN Lessons l ON o.lesson_id = l.id " +
+                "JOIN Instructors i ON o.instructor_id = i.id " +
+                "WHERE o.instructor_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, instructorId);  // Set the instructorId as the filter in the query
+            ResultSet rs = stmt.executeQuery();
+
+            boolean found = false;
+
+            while (rs.next()) {
+                int offeringId = rs.getInt("offering_id");
+                int lessonId = rs.getInt("lesson_id");
+                String lessonName = rs.getString("lesson_name");
+                String instructorName = rs.getString("instructor_name");
+
+                // Display the offering details along with lesson name and instructor name
+                System.out.println(offeringId +
+                        ", Lesson Name: " + lessonName);
+
                 found = true;
             }
-        }
 
-        if (!found) {
-            System.out.println("No offerings found for user " + getName() + ".");
-            return null;
-        } else {
-            return assignedOfferings;
+            if (!found) {
+                System.out.println("No offerings found for this instructor.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to view offerings: " + e.getMessage());
         }
-  }
+    }
+
 }

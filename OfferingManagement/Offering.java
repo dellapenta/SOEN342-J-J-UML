@@ -1,39 +1,41 @@
 package OfferingManagement;
 
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import UserManagement.*;
 public class Offering {
-    private static int idCounter = 0;  // Static variable to track ID count
+    private int lesson_id;
+    private int instructor_id;
 
-    private int offeringId;
-    private Lesson lesson;
-    private Instructor instructor;
-
-    public Offering(Lesson Lesson, Instructor instructor) {
-        this.offeringId = ++idCounter;  // Increment and assign unique ID
-        this.lesson = Lesson;
-        this.instructor = instructor;
+    public Offering(int lesson_id, int instructor_id) {
+        this.lesson_id = lesson_id;
+        this.instructor_id = instructor_id;
     }
 
-    public int getOfferingId() {
-        return offeringId;
-    }
-    
-    public Lesson getLesson() {
-        return lesson;
-    }
-    
-    public Instructor getInstructor() {
-        return instructor;
-    }
-
-    public void setInstructor(Instructor instructor) {
-        this.instructor = instructor;
+    public void saveToDatabase(Connection conn, int lessonId, int instructorId) throws SQLException {
+        String sql = "INSERT INTO Offerings (lesson_id, instructor_id) VALUES (?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, lessonId);
+            stmt.setInt(2, instructorId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Failed to insert offering: " + e.getMessage());
+            throw e;
+        }
     }
 
-
-    public boolean isAvailable() {
-        return this.lesson.getCapacity() != 0;
+    public void removeFromDatabase(Connection conn, int lessonId, int instructorId) throws SQLException {
+        String sql = "DELETE FROM Offerings WHERE lesson_id = ? AND instructor_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, lessonId);
+            stmt.setInt(2, instructorId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Failed to delete offering: " + e.getMessage());
+            throw e;
+        }
     }
 }
